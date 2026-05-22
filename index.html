@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#0a1628">
+<title>🚑 Rescate PWA</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  background: linear-gradient(135deg, #0e2148 0%, #0a1628 50%, #1a3a6c 100%);
+  color: #fff;
+  font-family: -apple-system, sans-serif;
+  padding: 16px;
+  min-height: 100vh;
+  padding-top: 60px;
+}
+h1 {
+  text-align: center;
+  font-size: 24px;
+  margin-bottom: 8px;
+  background: linear-gradient(135deg, #ffc73c 0%, #ff9a3c 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  font-weight: 800;
+}
+.subtitle {
+  text-align: center;
+  color: #94a3b8;
+  font-size: 13px;
+  margin-bottom: 20px;
+  padding: 0 10px;
+}
+.section {
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 16px;
+  padding: 16px;
+  margin-bottom: 16px;
+  backdrop-filter: blur(20px);
+}
+.section h2 {
+  font-size: 14px;
+  margin-bottom: 12px;
+  color: #ffc73c;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+.key-row {
+  background: rgba(0,0,0,0.3);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 10px;
+  padding: 14px;
+  margin-bottom: 10px;
+  word-break: break-all;
+}
+.key-name {
+  color: #00d97e;
+  font-weight: 700;
+  font-size: 12px;
+  margin-bottom: 6px;
+  font-family: monospace;
+}
+.key-count-big {
+  color: #ffc73c;
+  font-size: 36px;
+  font-weight: 900;
+  line-height: 1;
+  margin: 8px 0;
+}
+.key-count-big small {
+  font-size: 14px;
+  color: #94a3b8;
+  display: block;
+  margin-top: 4px;
+  font-weight: 600;
+}
+.key-preview {
+  color: #94a3b8;
+  font-size: 10px;
+  max-height: 60px;
+  overflow: hidden;
+  font-family: monospace;
+  line-height: 1.5;
+}
+button {
+  width: 100%;
+  padding: 18px;
+  border: none;
+  border-radius: 12px;
+  font-size: 14px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  cursor: pointer;
+  margin-bottom: 10px;
+  font-family: -apple-system, sans-serif;
+  -webkit-tap-highlight-color: transparent;
+}
+button:active { transform: scale(0.96); }
+.btn-green {
+  background: linear-gradient(135deg, #00d97e, #00a85f);
+  color: white;
+  box-shadow: 0 4px 16px rgba(0,217,126,0.3);
+}
+.btn-gold {
+  background: linear-gradient(135deg, #ffc73c, #ff9a3c);
+  color: #0a1628;
+  box-shadow: 0 4px 16px rgba(255,199,60,0.3);
+}
+.btn-blue {
+  background: linear-gradient(135deg, #3b82f6, #2563eb);
+  color: white;
+}
+.empty {
+  text-align: center;
+  padding: 30px 20px;
+  color: #94a3b8;
+}
+.empty-icon { font-size: 48px; margin-bottom: 12px; }
+textarea {
+  width: 100%;
+  height: 180px;
+  background: #000;
+  color: #00d97e;
+  border: 1px solid #00d97e;
+  border-radius: 8px;
+  padding: 10px;
+  font-family: monospace;
+  font-size: 10px;
+  margin-bottom: 10px;
+}
+.info-box {
+  background: rgba(59, 130, 246, 0.15);
+  border: 1px solid rgba(59, 130, 246, 0.4);
+  border-radius: 12px;
+  padding: 14px;
+  font-size: 13px;
+  line-height: 1.5;
+  color: #cbd5e1;
+  margin-bottom: 16px;
+}
+.success-box {
+  background: rgba(0, 217, 126, 0.15);
+  border: 1px solid rgba(0, 217, 126, 0.4);
+  border-radius: 12px;
+  padding: 16px;
+  text-align: center;
+  margin-bottom: 16px;
+}
+.success-box .check {
+  font-size: 36px;
+  margin-bottom: 8px;
+}
+.success-box h3 {
+  color: #00d97e;
+  font-size: 18px;
+  margin-bottom: 6px;
+}
+</style>
+</head>
+<body>
+<h1>🚑 RESCATE PWA</h1>
+<div class="subtitle">Escaneando el almacenamiento privado de esta app...</div>
+
+<div class="info-box">
+  ℹ️ Esta página SOLO LEE. NO escribe nada hasta que toques un botón. Cero riesgo.
+</div>
+
+<div id="content"></div>
+
+<script>
+function scanAndShow() {
+  const content = document.getElementById('content');
+  const allFound = {};
+  let totalKeys = 0;
+  let bestKey = null;
+  let bestCount = 0;
+  let bestData = null;
+  
+  try {
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      const raw = localStorage.getItem(key);
+      allFound[key] = raw;
+      totalKeys++;
+    }
+  } catch (e) {
+    content.innerHTML = '<div class="section"><div class="empty"><div class="empty-icon">⚠️</div>Error leyendo localStorage: ' + e.message + '</div></div>';
+    return;
+  }
+  
+  const analyzed = [];
+  for (const key in allFound) {
+    const raw = allFound[key];
+    let count = 0;
+    let isArray = false;
+    let preview = '';
+    
+    try {
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed)) {
+        count = parsed.length;
+        isArray = true;
+        preview = JSON.stringify(parsed.slice(0, 5));
+        if (parsed.length > 5) preview += '... +' + (parsed.length - 5) + ' más';
+        if (count > 0 && typeof parsed[0] === 'string' && /^[A-Z]{2,4}\d+$/.test(parsed[0])) {
+          if (count > bestCount) {
+            bestKey = key;
+            bestCount = count;
+            bestData = parsed;
+          }
+        }
+      } else {
+        preview = String(raw).slice(0, 100);
+      }
+    } catch (e) {
+      preview = String(raw).slice(0, 100);
+    }
+    
+    analyzed.push({ key, count, isArray, preview });
+  }
+  
+  analyzed.sort((a, b) => b.count - a.count);
+  
+  let html = '';
+  
+  if (bestKey && bestCount > 50) {
+    html += '<div class="success-box">' +
+      '<div class="check">🎉</div>' +
+      '<h3>¡MARCAS ENCONTRADAS!</h3>' +
+      '<div style="color:#cbd5e1; font-size:13px; margin-top:4px;">' + bestCount + ' cartas recuperables</div>' +
+    '</div>';
+    
+    html += '<div class="section">' +
+      '<h2>✨ Pasos de recuperación</h2>' +
+      '<button class="btn-gold" id="downloadBtn">💾 1. PRIMERO: Descargar respaldo</button>' +
+      '<button class="btn-green" id="restoreBtn">✓ 2. Restaurar ' + bestCount + ' a v4</button>' +
+    '</div>';
+  }
+  
+  html += '<div class="section">' +
+    '<h2>📦 Encontrado ' + totalKeys + ' claves</h2>';
+  
+  if (totalKeys === 0) {
+    html += '<div class="empty"><div class="empty-icon">😢</div>localStorage vacío.<br><br>Tus marcas no están en esta PWA.<br><br>Vamos a recuperar desde el Excel (458).</div>';
+  } else {
+    for (const item of analyzed) {
+      html += '<div class="key-row">' +
+        '<div class="key-name">🔑 ' + item.key + '</div>';
+      if (item.isArray) {
+        html += '<div class="key-count-big">' + item.count + '<small>elementos</small></div>';
+      }
+      html += '<div class="key-preview">' + item.preview + '</div>' +
+      '</div>';
+    }
+  }
+  html += '</div>';
+  
+  html += '<div class="section">' +
+    '<h2>📋 Mandame esto al chat</h2>' +
+    '<textarea id="exportText" readonly></textarea>' +
+    '<button class="btn-blue" id="copyBtn">📋 Copiar al portapapeles</button>' +
+  '</div>';
+  
+  content.innerHTML = html;
+  
+  if (bestKey) {
+    document.getElementById('downloadBtn').onclick = function() {
+      const data = {
+        rescued_at: new Date().toISOString(),
+        source_key: bestKey,
+        count: bestCount,
+        marks: bestData,
+        all_keys: allFound
+      };
+      const blob = new Blob([JSON.stringify(data, null, 2)], {type: 'application/json'});
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'rescate_pwa.json';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      alert('✓ Respaldo descargado.\n\nGuardalo SEGURO antes de seguir.');
+    };
+    
+    document.getElementById('restoreBtn').onclick = function() {
+      if (!confirm('¿Restaurar ' + bestCount + ' marcas?\n¿Ya descargaste el respaldo?')) return;
+      try {
+        localStorage.setItem('album_mundial_2026_v4_owned', JSON.stringify(bestData));
+        localStorage.setItem('album_mundial_2026_migration_done', 'yes');
+        alert('✓ ' + bestCount + ' marcas restauradas en v4.\n\nMandame screenshot al chat.');
+      } catch (e) {
+        alert('Error: ' + e.message);
+      }
+    };
+  }
+  
+  document.getElementById('copyBtn').onclick = function() {
+    const txt = document.getElementById('exportText');
+    txt.select();
+    txt.setSelectionRange(0, 99999);
+    try {
+      navigator.clipboard.writeText(txt.value).then(function() {
+        alert('✓ Copiado.');
+      }).catch(function() {
+        document.execCommand('copy');
+        alert('✓ Copiado.');
+      });
+    } catch (e) {
+      document.execCommand('copy');
+      alert('✓ Copiado.');
+    }
+  };
+  
+  const exportData = {
+    scanned_at: new Date().toISOString(),
+    user_agent: navigator.userAgent,
+    is_pwa_standalone: window.matchMedia('(display-mode: standalone)').matches,
+    total_keys: totalKeys,
+    best_candidate_key: bestKey,
+    best_candidate_count: bestCount,
+    all_data: allFound
+  };
+  document.getElementById('exportText').value = JSON.stringify(exportData, null, 2);
+}
+
+scanAndShow();
+</script>
+</body>
+</html>
