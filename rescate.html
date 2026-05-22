@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🚑 RESCATE · Álbum Mundial</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  background: #0a1628;
+  color: #fff;
+  font-family: -apple-system, sans-serif;
+  padding: 16px;
+  min-height: 100vh;
+}
+h1 {
+  text-align: center;
+  color: #ff3859;
+  font-size: 24px;
+  margin-bottom: 8px;
+}
+.subtitle {
+  text-align: center;
+  color: #94a3b8;
+  font-size: 13px;
+  margin-bottom: 20px;
+}
+.section {
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 16px;
+  padding: 16px;
+  margin-bottom: 16px;
+}
+.section h2 {
+  font-size: 16px;
+  margin-bottom: 12px;
+  color: #ffc73c;
+}
+.key-row {
+  background: rgba(0,0,0,0.3);
+  border-radius: 8px;
+  padding: 12px;
+  margin-bottom: 8px;
+  font-family: monospace;
+  font-size: 12px;
+  word-break: break-all;
+}
+.key-name {
+  color: #00d97e;
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+.key-count {
+  color: #ffc73c;
+  font-size: 16px;
+  font-weight: 800;
+  margin-bottom: 4px;
+}
+.key-preview {
+  color: #94a3b8;
+  font-size: 11px;
+  max-height: 80px;
+  overflow: hidden;
+  white-space: pre-wrap;
+}
+button {
+  width: 100%;
+  padding: 16px;
+  border: none;
+  border-radius: 12px;
+  font-size: 14px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  cursor: pointer;
+  margin-bottom: 10px;
+}
+.btn-green {
+  background: linear-gradient(135deg, #00d97e, #00a85f);
+  color: white;
+}
+.btn-gold {
+  background: linear-gradient(135deg, #ffc73c, #ff9a3c);
+  color: #0a1628;
+}
+.btn-blue {
+  background: linear-gradient(135deg, #3b82f6, #2563eb);
+  color: white;
+}
+.empty {
+  text-align: center;
+  padding: 40px 20px;
+  color: #94a3b8;
+}
+.empty-icon { font-size: 48px; margin-bottom: 12px; }
+textarea {
+  width: 100%;
+  height: 200px;
+  background: #000;
+  color: #00d97e;
+  border: 1px solid #00d97e;
+  border-radius: 8px;
+  padding: 10px;
+  font-family: monospace;
+  font-size: 11px;
+  margin-bottom: 10px;
+}
+</style>
+</head>
+<body>
+<h1>🚑 RESCATE DE MARCAS</h1>
+<div class="subtitle">Escaneando todo el almacenamiento del navegador...</div>
+
+<div class="section">
+  <h2>📦 Todo lo encontrado en localStorage</h2>
+  <div id="allKeys"></div>
+</div>
+
+<div class="section" id="bestSection" style="display:none;">
+  <h2>✨ Mejor candidato para recuperar</h2>
+  <div id="bestKey"></div>
+  <button class="btn-green" id="restoreBtn">✓ RESTAURAR estas marcas a v4</button>
+  <button class="btn-gold" id="downloadBtn">💾 Descargar respaldo JSON</button>
+</div>
+
+<div class="section">
+  <h2>📋 Copiá esto y mandalo al chat</h2>
+  <textarea id="exportText" readonly></textarea>
+  <button class="btn-blue" id="copyBtn">📋 Copiar todo al portapapeles</button>
+</div>
+
+<script>
+const KNOWN_KEYS = [
+  'album_mundial_2026_owned',
+  'album_mundial_2026_v2_owned',
+  'album_mundial_2026_v3_owned',
+  'album_mundial_2026_v4_owned',
+];
+
+function scanAll() {
+  const allFound = {};
+  const allKeysContainer = document.getElementById('allKeys');
+  
+  // Escanear TODAS las claves del localStorage (no solo las conocidas)
+  for (let i = 0; i < localStorage.length; i++) {
+    const key = localStorage.key(i);
+    const raw = localStorage.getItem(key);
+    allFound[key] = raw;
+  }
+  
+  // Mostrar todas las claves encontradas
+  const keys = Object.keys(allFound);
+  if (keys.length === 0) {
+    allKeysContainer.innerHTML = '<div class="empty"><div class="empty-icon">😢</div>El localStorage está completamente vacío en este navegador.</div>';
+    return;
+  }
+  
+  let html = '';
+  let bestKey = null;
+  let bestCount = 0;
+  
+  for (const key of keys) {
+    const raw = allFound[key];
+    let count = 0;
+    let preview = '';
+    let isArray = false;
+    
+    try {
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed)) {
+        count = parsed.length;
+        isArray = true;
+        preview = JSON.stringify(parsed.slice(0, 10));
+        if (parsed.length > 10) preview += '... +' + (parsed.length - 10) + ' más';
+      } else if (typeof parsed === 'object') {
+        preview = JSON.stringify(parsed).slice(0, 200);
+      } else {
+        preview = String(parsed).slice(0, 200);
+      }
+    } catch (e) {
+      preview = String(raw).slice(0, 200);
+    }
+    
+    html += `<div class="key-row">
+      <div class="key-name">🔑 ${key}</div>`;
+    if (isArray) {
+      html += `<div class="key-count">📊 ${count} elementos</div>`;
+    }
+    html += `<div class="key-preview">${preview}</div>
+    </div>`;
+    
+    // Detectar el mejor candidato (array con más marcas que parezcan IDs de cartas)
+    if (isArray && count > bestCount) {
+      try {
+        const parsed = JSON.parse(raw);
+        // Validar que parezcan IDs (tipo "MEX1", "ARG17", etc.)
+        const looksLikeCardIds = parsed.length > 0 && 
+          typeof parsed[0] === 'string' && 
+          /^[A-Z]{2,4}\d+$/.test(parsed[0]);
+        if (looksLikeCardIds || key.includes('mundial')) {
+          bestKey = key;
+          bestCount = count;
+        }
+      } catch (e) {}
+    }
+  }
+  
+  allKeysContainer.innerHTML = html;
+  
+  // Mostrar mejor candidato
+  if (bestKey) {
+    document.getElementById('bestSection').style.display = 'block';
+    document.getElementById('bestKey').innerHTML = 
+      `<div class="key-row">
+        <div class="key-name">🔑 ${bestKey}</div>
+        <div class="key-count">📊 ${bestCount} marcas</div>
+      </div>`;
+    
+    document.getElementById('restoreBtn').onclick = () => {
+      if (!confirm('¿Restaurar ' + bestCount + ' marcas a la versión v4 del álbum?')) return;
+      localStorage.setItem('album_mundial_2026_v4_owned', localStorage.getItem(bestKey));
+      alert('✓ Restaurado.\\n\\nAhora cerrá esta pestaña, cerrá completamente la app del álbum (deslizá hacia arriba en el conmutador de apps), y abrila de nuevo.');
+    };
+    
+    document.getElementById('downloadBtn').onclick = () => {
+      const data = {
+        rescued_at: new Date().toISOString(),
+        source_key: bestKey,
+        count: bestCount,
+        marks: JSON.parse(localStorage.getItem(bestKey))
+      };
+      const blob = new Blob([JSON.stringify(data, null, 2)], {type: 'application/json'});
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'rescate_' + new Date().toISOString().slice(0,10) + '.json';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    };
+  }
+  
+  // Preparar export completo
+  const exportData = {
+    scanned_at: new Date().toISOString(),
+    user_agent: navigator.userAgent,
+    all_keys: allFound,
+    best_candidate: bestKey,
+    best_count: bestCount
+  };
+  document.getElementById('exportText').value = JSON.stringify(exportData, null, 2);
+}
+
+document.getElementById('copyBtn').onclick = () => {
+  const txt = document.getElementById('exportText');
+  txt.select();
+  document.execCommand('copy');
+  alert('✓ Copiado al portapapeles. Pegalo en el chat con Claude.');
+};
+
+scanAll();
+</script>
+</body>
+</html>
