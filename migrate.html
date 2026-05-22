@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Migración · Álbum Mundial 2026</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Manrope:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  background: linear-gradient(135deg, #0e2148 0%, #0a1628 50%, #1a3a6c 100%);
+  font-family: 'Manrope', sans-serif;
+  color: white;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+.card {
+  background: rgba(255,255,255,0.06);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 24px;
+  padding: 32px 28px;
+  max-width: 420px;
+  width: 100%;
+  text-align: center;
+  box-shadow: 0 24px 64px rgba(0,0,0,0.4);
+}
+.icon {
+  font-size: 56px;
+  margin-bottom: 16px;
+}
+h1 {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 28px;
+  letter-spacing: 1px;
+  margin-bottom: 8px;
+  background: linear-gradient(135deg, #ffc73c 0%, #ff9a3c 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+.subtitle {
+  color: #94a3b8;
+  font-size: 13px;
+  margin-bottom: 24px;
+  line-height: 1.5;
+}
+.status {
+  background: rgba(0,0,0,0.3);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 20px;
+  text-align: left;
+  font-size: 13px;
+  line-height: 1.7;
+}
+.status .row {
+  display: flex;
+  justify-content: space-between;
+  padding: 4px 0;
+}
+.status .label { color: #94a3b8; }
+.status .value { font-weight: 700; }
+.status .value.green { color: #00d97e; }
+.status .value.red { color: #ff3859; }
+.status .value.gold { color: #ffc73c; }
+button {
+  width: 100%;
+  padding: 16px;
+  border-radius: 14px;
+  border: none;
+  font-family: 'Manrope', sans-serif;
+  font-size: 14px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  cursor: pointer;
+  transition: all 0.15s;
+  margin-bottom: 10px;
+}
+button:active { transform: scale(0.96); }
+.btn-primary {
+  background: linear-gradient(135deg, #00d97e 0%, #00a85f 100%);
+  color: white;
+  box-shadow: 0 8px 24px rgba(0,217,126,0.3);
+}
+.btn-primary:disabled {
+  background: rgba(255,255,255,0.1);
+  color: #64748b;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+.btn-secondary {
+  background: rgba(255,255,255,0.08);
+  color: white;
+  border: 1px solid rgba(255,255,255,0.12);
+}
+.success {
+  background: rgba(0,217,126,0.15);
+  border-color: rgba(0,217,126,0.4);
+}
+.error {
+  background: rgba(255,56,89,0.15);
+  border-color: rgba(255,56,89,0.4);
+}
+.warning {
+  background: rgba(255,199,60,0.15);
+  border-color: rgba(255,199,60,0.4);
+}
+a.link-btn {
+  display: block;
+  text-decoration: none;
+  color: white;
+  background: linear-gradient(135deg, #ffc73c 0%, #ff9a3c 100%);
+  padding: 16px;
+  border-radius: 14px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  font-size: 14px;
+  margin-top: 12px;
+  box-shadow: 0 8px 24px rgba(255,199,60,0.3);
+}
+</style>
+</head>
+<body>
+<div class="card">
+  <div class="icon">🔄</div>
+  <h1>MIGRACIÓN DE DATOS</h1>
+  <div class="subtitle">
+    Esta página recupera tus marcas del álbum anterior (v3)<br>
+    y las pasa al álbum nuevo (v4).
+  </div>
+
+  <div class="status" id="status">
+    <div class="row">
+      <span class="label">📦 Marcas en v3 (viejo):</span>
+      <span class="value" id="v3count">-</span>
+    </div>
+    <div class="row">
+      <span class="label">📦 Marcas en v4 (nuevo):</span>
+      <span class="value" id="v4count">-</span>
+    </div>
+    <div class="row">
+      <span class="label">📊 Estado:</span>
+      <span class="value" id="state">Cargando...</span>
+    </div>
+  </div>
+
+  <button class="btn-primary" id="migrateBtn" disabled>
+    ▶ Migrar v3 → v4
+  </button>
+  <button class="btn-secondary" id="exportBtn">
+    💾 Descargar respaldo (JSON)
+  </button>
+  <button class="btn-secondary" id="resetBtn" style="margin-top: 16px; background: rgba(255,56,89,0.1); border-color: rgba(255,56,89,0.3); color: #ff3859;">
+    ⚠ Borrar todo (peligroso)
+  </button>
+
+  <a class="link-btn" href="./" id="goAlbumBtn" style="display:none;">
+    ✅ Ir al álbum nuevo
+  </a>
+</div>
+
+<script>
+const V3_KEY = 'album_mundial_2026_owned';
+const V3_BIS_KEY = 'album_mundial_2026_v2_owned';
+const V3_TRIS_KEY = 'album_mundial_2026_v3_owned';
+const V4_KEY = 'album_mundial_2026_v4_owned';
+
+function getKeys(storageKey) {
+  try {
+    const v = localStorage.getItem(storageKey);
+    if (!v) return [];
+    return JSON.parse(v);
+  } catch(e) { return []; }
+}
+
+function findV3Data() {
+  // Buscar en todas las versiones viejas, devolver la que tenga más marcas
+  const candidates = [V3_KEY, V3_BIS_KEY, V3_TRIS_KEY];
+  let best = { key: null, ids: [] };
+  for (const k of candidates) {
+    const ids = getKeys(k);
+    if (ids.length > best.ids.length) {
+      best = { key: k, ids };
+    }
+  }
+  return best;
+}
+
+function refresh() {
+  const v3 = findV3Data();
+  const v4 = getKeys(V4_KEY);
+  document.getElementById('v3count').textContent = v3.ids.length + (v3.key ? ` (${v3.key.replace('album_mundial_2026_','').replace('_owned','')})` : '');
+  document.getElementById('v4count').textContent = v4.length;
+
+  const stateEl = document.getElementById('state');
+  const migrateBtn = document.getElementById('migrateBtn');
+  const goBtn = document.getElementById('goAlbumBtn');
+
+  if (v3.ids.length === 0 && v4.length === 0) {
+    stateEl.textContent = 'Sin datos';
+    stateEl.className = 'value red';
+    migrateBtn.disabled = true;
+    migrateBtn.textContent = '✗ No hay nada para migrar';
+  } else if (v3.ids.length === 0 && v4.length > 0) {
+    stateEl.textContent = 'Solo v4 - listo';
+    stateEl.className = 'value green';
+    migrateBtn.disabled = true;
+    migrateBtn.textContent = '✓ Ya estás en v4';
+    goBtn.style.display = 'block';
+  } else if (v3.ids.length > 0 && v4.length === 0) {
+    stateEl.textContent = `Listo para migrar ${v3.ids.length} marcas`;
+    stateEl.className = 'value gold';
+    migrateBtn.disabled = false;
+    migrateBtn.textContent = `▶ Migrar ${v3.ids.length} marcas a v4`;
+  } else if (v3.ids.length > 0 && v4.length > 0) {
+    if (v3.ids.length > v4.length) {
+      stateEl.textContent = `v3 tiene ${v3.ids.length - v4.length} marcas extra`;
+      stateEl.className = 'value gold';
+      migrateBtn.disabled = false;
+      migrateBtn.textContent = '▶ Fusionar (mantener todo)';
+    } else {
+      stateEl.textContent = 'v4 ya tiene más datos';
+      stateEl.className = 'value green';
+      migrateBtn.disabled = false;
+      migrateBtn.textContent = '▶ Fusionar (mantener todo)';
+      goBtn.style.display = 'block';
+    }
+  }
+  return v3;
+}
+
+document.getElementById('migrateBtn').onclick = () => {
+  const v3 = findV3Data();
+  const v4ids = getKeys(V4_KEY);
+  const merged = Array.from(new Set([...v4ids, ...v3.ids]));
+  localStorage.setItem(V4_KEY, JSON.stringify(merged));
+  alert(`✓ Migrado: ${merged.length} marcas en v4
+
+v4 anterior: ${v4ids.length}
+v3 recuperadas: ${v3.ids.length}
+Total fusionado: ${merged.length}
+
+(no se borró el v3 viejo por seguridad)`);
+  refresh();
+};
+
+document.getElementById('exportBtn').onclick = () => {
+  const v3 = findV3Data();
+  const v4 = getKeys(V4_KEY);
+  const data = {
+    exported_at: new Date().toISOString(),
+    v3_source_key: v3.key,
+    v3_marks: v3.ids,
+    v4_marks: v4
+  };
+  const blob = new Blob([JSON.stringify(data, null, 2)], {type: 'application/json'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `respaldo_album_${new Date().toISOString().slice(0,10)}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+};
+
+document.getElementById('resetBtn').onclick = () => {
+  if (!confirm('⚠ ¿BORRAR TODO? Esto elimina todas las marcas de v3 y v4. No hay vuelta atrás.')) return;
+  if (!confirm('Confirmá una vez más: ¿realmente borrar todo?')) return;
+  [V3_KEY, V3_BIS_KEY, V3_TRIS_KEY, V4_KEY].forEach(k => localStorage.removeItem(k));
+  alert('✓ Todo borrado');
+  refresh();
+};
+
+refresh();
+</script>
+</body>
+</html>
