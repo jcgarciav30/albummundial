@@ -1,0 +1,989 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cartas marcadas - Album Mundial 2026</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, system-ui, sans-serif; }
+  body {
+    background: linear-gradient(135deg, #0a1628, #1a2e4a);
+    color: white;
+    min-height: 100vh;
+    padding: 20px;
+  }
+  .container { max-width: 800px; margin: 0 auto; }
+  h1 { font-size: 22px; margin-bottom: 8px; color: #f4c430; }
+  .subtitle { color: #aaa; font-size: 13px; margin-bottom: 20px; }
+
+  /* === TABS === */
+  .tabs {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px;
+    background: rgba(255,255,255,0.05);
+    padding: 4px;
+    border-radius: 12px;
+    margin-bottom: 16px;
+  }
+  .tab {
+    padding: 10px;
+    text-align: center;
+    border-radius: 10px;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    color: #aaa;
+    transition: all 0.2s;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .tab.active {
+    background: linear-gradient(135deg, #f4c430, #ff9a3c);
+    color: #0a1628;
+    box-shadow: 0 4px 12px rgba(244,196,48,0.4);
+  }
+  .tab-content { display: none; }
+  .tab-content.active { display: block; }
+
+  .input-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-bottom: 10px;
+  }
+  .input-row > div { display: flex; flex-direction: column; }
+  label { font-size: 12px; color: #aaa; margin-bottom: 4px; }
+  .date-input, .time-input, .text-input {
+    background: rgba(255,255,255,0.1);
+    border: 2px solid rgba(255,255,255,0.2);
+    color: white;
+    padding: 10px;
+    border-radius: 10px;
+    font-size: 14px;
+    width: 100%;
+    color-scheme: dark;
+  }
+  .text-input:focus {
+    outline: none;
+    border-color: #f4c430;
+  }
+  button {
+    background: linear-gradient(135deg, #00d97e, #00a85f);
+    color: white;
+    border: none;
+    padding: 14px 24px;
+    border-radius: 12px;
+    font-size: 15px;
+    font-weight: 800;
+    letter-spacing: 1px;
+    width: 100%;
+    cursor: pointer;
+    text-transform: uppercase;
+    margin: 10px 0;
+  }
+  button:active { opacity: 0.7; }
+  button.secondary {
+    background: rgba(255,255,255,0.1);
+    border: 1px solid rgba(255,255,255,0.2);
+    margin: 5px 0;
+    padding: 10px;
+    font-size: 12px;
+  }
+  .quick-buttons {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+    margin-bottom: 12px;
+  }
+
+  /* === AUTOCOMPLETE === */
+  .autocomplete-wrapper { position: relative; margin-bottom: 10px; }
+  .autocomplete-list {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: #1a2e4a;
+    border: 1px solid rgba(255,255,255,0.2);
+    border-radius: 10px;
+    max-height: 280px;
+    overflow-y: auto;
+    z-index: 100;
+    margin-top: 4px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+    display: none;
+  }
+  .autocomplete-list.open { display: block; }
+  .autocomplete-item {
+    padding: 10px 14px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+    -webkit-tap-highlight-color: transparent;
+  }
+  .autocomplete-item:hover, .autocomplete-item.highlighted {
+    background: rgba(244,196,48,0.15);
+  }
+  .autocomplete-item:last-child { border-bottom: none; }
+  .ac-thumb {
+    width: 36px; height: 48px;
+    background: #0a1628;
+    border-radius: 6px;
+    overflow: hidden;
+    flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Courier New', monospace;
+    font-size: 9px;
+    color: #888;
+    position: relative;
+  }
+  .ac-thumb img { width: 100%; height: 100%; object-fit: cover; border-radius: inherit; }
+  .ac-info { flex: 1; min-width: 0; }
+  .ac-code { font-family: 'Courier New', monospace; font-weight: 800; color: #f4c430; font-size: 11px; }
+  .ac-name { font-size: 13px; color: white; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .ac-team { font-size: 10px; color: #888; }
+
+  /* === SELECTED CARD HEADER === */
+  .selected-card-header {
+    background: rgba(244,196,48,0.1);
+    border: 1px solid rgba(244,196,48,0.3);
+    border-radius: 12px;
+    padding: 12px;
+    margin: 12px 0;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .selected-card-header .ac-thumb { width: 50px; height: 68px; }
+  .selected-card-header .info { flex: 1; min-width: 0; }
+  .selected-card-header .info .name { font-size: 16px; font-weight: 700; color: white; }
+  .selected-card-header .info .meta { font-size: 11px; color: #f4c430; margin-top: 2px; }
+  .selected-card-header .clear-btn {
+    background: rgba(255,255,255,0.1);
+    border: none;
+    color: white;
+    width: 32px; height: 32px;
+    border-radius: 8px;
+    cursor: pointer;
+    margin: 0;
+    padding: 0;
+    font-size: 18px;
+    flex-shrink: 0;
+  }
+
+  /* === TIMELINE / HISTORIAL === */
+  .timeline {
+    margin-top: 16px;
+    position: relative;
+    padding-left: 24px;
+  }
+  .timeline::before {
+    content: '';
+    position: absolute;
+    left: 6px;
+    top: 8px;
+    bottom: 8px;
+    width: 2px;
+    background: linear-gradient(180deg, #f4c430 0%, rgba(244,196,48,0.2) 100%);
+  }
+  .timeline-event {
+    position: relative;
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 10px;
+    padding: 10px 14px;
+    margin-bottom: 10px;
+  }
+  .timeline-event::before {
+    content: '';
+    position: absolute;
+    left: -22px;
+    top: 14px;
+    width: 12px; height: 12px;
+    border-radius: 50%;
+    background: #f4c430;
+    border: 3px solid #0a1628;
+    box-shadow: 0 0 0 2px #f4c430;
+  }
+  .timeline-event.event-mark::before { background: #00d97e; box-shadow: 0 0 0 2px #00d97e; }
+  .timeline-event.event-unmark::before { background: #ef4444; box-shadow: 0 0 0 2px #ef4444; }
+  .timeline-event.event-repe::before { background: #f4c430; box-shadow: 0 0 0 2px #f4c430; }
+  .timeline-event.event-note::before { background: #3b82f6; box-shadow: 0 0 0 2px #3b82f6; }
+  .te-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 8px;
+  }
+  .te-icon { font-size: 18px; }
+  .te-title {
+    flex: 1;
+    font-size: 13px;
+    font-weight: 700;
+  }
+  .te-title.green { color: #00d97e; }
+  .te-title.red { color: #ef4444; }
+  .te-title.gold { color: #f4c430; }
+  .te-title.blue { color: #60a5fa; }
+  .te-date { font-size: 11px; color: #888; }
+  .te-detail { font-size: 11px; color: #aaa; margin-top: 4px; padding-left: 26px; }
+
+  .status {
+    padding: 12px;
+    border-radius: 10px;
+    margin-bottom: 16px;
+    font-size: 13px;
+    text-align: center;
+  }
+  .status.loading { background: rgba(255,193,7,0.2); border: 1px solid #f4c430; }
+  .status.success { background: rgba(0,217,126,0.2); border: 1px solid #00d97e; }
+  .status.error { background: rgba(239,68,68,0.2); border: 1px solid #ef4444; }
+  .stats-summary {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+  .stat-card {
+    background: rgba(255,255,255,0.08);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 12px;
+    padding: 12px;
+    text-align: center;
+  }
+  .stat-value { font-size: 26px; font-weight: 900; color: #f4c430; line-height: 1; margin-bottom: 4px; }
+  .stat-label { font-size: 10px; color: #aaa; letter-spacing: 1px; text-transform: uppercase; }
+  .card-list { display: flex; flex-direction: column; gap: 6px; }
+  .card-item {
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 10px;
+    padding: 10px 12px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .card-item.new { border-left: 3px solid #00d97e; }
+  .card-item.repe { border-left: 3px solid #f4c430; }
+  .card-info { flex: 1; min-width: 0; }
+  .card-id {
+    font-family: 'Courier New', monospace;
+    font-size: 13px;
+    font-weight: bold;
+    color: #f4c430;
+    margin-bottom: 2px;
+  }
+  .card-name {
+    font-size: 12px;
+    color: white;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .card-time { font-size: 10px; color: #888; margin-left: 8px; text-align: right; white-space: nowrap; }
+  .card-badge {
+    font-size: 9px;
+    padding: 3px 6px;
+    border-radius: 5px;
+    font-weight: 800;
+    letter-spacing: 0.5px;
+    margin-left: 6px;
+    white-space: nowrap;
+  }
+  .badge-new { background: rgba(0,217,126,0.2); color: #00d97e; }
+  .badge-repe { background: rgba(244,196,48,0.2); color: #f4c430; }
+  .group-header {
+    margin: 16px 0 6px;
+    font-size: 12px;
+    color: #aaa;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    padding-bottom: 4px;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+  }
+  .empty-state {
+    text-align: center;
+    padding: 40px 20px;
+    color: #888;
+    font-size: 14px;
+  }
+  .empty-state .icon { font-size: 48px; margin-bottom: 12px; opacity: 0.4; }
+  .debug {
+    margin-top: 20px;
+    padding: 10px;
+    background: rgba(255,255,255,0.05);
+    border-radius: 8px;
+    font-family: monospace;
+    font-size: 11px;
+    color: #aaa;
+    max-height: 200px;
+    overflow: auto;
+  }
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>📅 Cartas marcadas - Album Mundial 2026</h1>
+  <p class="subtitle">Consulta el historial de tu álbum</p>
+
+  <div class="tabs">
+    <div class="tab active" data-tab="range" onclick="switchTab('range')">📆 Por fechas</div>
+    <div class="tab" data-tab="card" onclick="switchTab('card')">🎴 Por carta</div>
+  </div>
+
+  <!-- ============================== -->
+  <!-- TAB 1: POR RANGO DE FECHAS     -->
+  <!-- ============================== -->
+  <div id="tab-range" class="tab-content active">
+    <div class="quick-buttons">
+      <button class="secondary" onclick="quickRange('hoy')">📅 Hoy</button>
+      <button class="secondary" onclick="quickRange('ayer')">📅 Ayer</button>
+      <button class="secondary" onclick="quickRange('semana')">📅 7 días</button>
+    </div>
+    
+    <div class="input-row">
+      <div>
+        <label>Desde:</label>
+        <input type="datetime-local" id="dateFrom" class="date-input">
+      </div>
+      <div>
+        <label>Hasta:</label>
+        <input type="datetime-local" id="dateTo" class="date-input">
+      </div>
+    </div>
+    
+    <div style="margin: 12px 0; display: flex; align-items: center; gap: 8px; color: #aab4be; font-size: 14px;">
+      <input type="checkbox" id="hideBulkSync" checked style="width: 18px; height: 18px; cursor: pointer;">
+      <label for="hideBulkSync" style="cursor: pointer;">🚫 Ocultar sync masivo (grupos de +20 cartas en el mismo minuto)</label>
+    </div>
+    
+    <button onclick="consultar()">🔍 Consultar</button>
+    
+    <div id="status"></div>
+    <div id="results"></div>
+    <div id="debug" class="debug" style="display:none;"></div>
+  </div>
+
+  <!-- ============================== -->
+  <!-- TAB 2: POR CARTA ESPECÍFICA    -->
+  <!-- ============================== -->
+  <div id="tab-card" class="tab-content">
+    <label>Buscá por código (ej: MAR4, FWC12) o nombre del jugador:</label>
+    <div class="autocomplete-wrapper">
+      <input type="text" id="cardSearch" class="text-input" placeholder="MAR4, Hakimi, ter Stegen..." autocomplete="off">
+      <div id="autocompleteList" class="autocomplete-list"></div>
+    </div>
+
+    <div id="selectedCardHeader"></div>
+    <div id="cardHistoryStatus"></div>
+    <div id="cardHistory"></div>
+  </div>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import { getFirestore, collection, getDocs, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyCeCYwBkm9esC1EBPOT5r_jezZfPlHAL7U",
+  authDomain: "album-mundial-2026-e7d91.firebaseapp.com",
+  projectId: "album-mundial-2026-e7d91",
+  storageBucket: "album-mundial-2026-e7d91.appspot.com"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+const PLAYERS_DATA_URL = 'https://jcgarciav30.github.io/albummundial/index.html';
+const CROMOS_BASE_URL = 'https://jcgarciav30.github.io/albummundial/cromos/';
+
+let PLAYERS = {};
+let TEAM_NAMES = {};  // code -> país (de TEAM_COLORS o similar)
+let ALL_CARDS = [];   // lista completa de cards posibles para autocomplete
+
+// ====== TAB SWITCH ======
+window.switchTab = function(tab) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.tab === tab));
+  document.querySelectorAll('.tab-content').forEach(c => c.classList.toggle('active', c.id === `tab-${tab}`));
+};
+
+async function loadPlayers() {
+  try {
+    const res = await fetch(PLAYERS_DATA_URL);
+    const html = await res.text();
+    
+    // Cargar PLAYERS
+    const m = html.match(/const PLAYERS\s*=\s*(\{[^;]+?\});/s);
+    if (m) {
+      PLAYERS = JSON.parse(m[1]);
+    }
+
+    // Cargar CARDS para tener el nombre del país por cada código
+    const m2 = html.match(/const CARDS\s*=\s*(\[[\s\S]+?\]);/);
+    if (m2) {
+      try {
+        // CARDS puede tener formato JS estricto, intentamos eval seguro
+        const cardsArr = Function(`"use strict"; return (${m2[1]});`)();
+        cardsArr.forEach(c => {
+          if (c.code && c.country) TEAM_NAMES[c.code] = c.country;
+          ALL_CARDS.push(c);
+        });
+      } catch(e) { console.warn('CARDS parse:', e); }
+    }
+    console.log('PLAYERS:', Object.keys(PLAYERS).length, 'teams · CARDS:', ALL_CARDS.length);
+  } catch(e) {
+    console.error('Error loading PLAYERS:', e);
+  }
+}
+
+function getPlayerName(cardId) {
+  const m = cardId.match(/^([A-Z]+)(\d+)$/);
+  if (!m) return cardId;
+  const code = m[1];
+  const num = m[2];
+  
+  if (code === 'FWC') return num === '0' ? 'FWC 00 - Logo Panini' : `FWC ${num}`;
+  if (code === 'CC') return `Coca-Cola Star ${num}`;
+  
+  if (PLAYERS[code] && PLAYERS[code][num]) {
+    return PLAYERS[code][num];
+  }
+  return cardId;
+}
+
+function getCountryName(cardId) {
+  const m = cardId.match(/^([A-Z]+)(\d+)$/);
+  if (!m) return '';
+  return TEAM_NAMES[m[1]] || m[1];
+}
+
+function setStatus(msg, type='loading') {
+  const el = document.getElementById('status');
+  el.className = `status ${type}`;
+  el.textContent = msg;
+}
+
+function setDebug(msg) {
+  const el = document.getElementById('debug');
+  el.style.display = 'block';
+  el.textContent = msg;
+}
+
+window.quickRange = function(range) {
+  const now = new Date();
+  let from, to;
+  
+  if (range === 'hoy') {
+    from = new Date(now); from.setHours(0,0,0,0);
+    to = new Date(now); to.setHours(23,59,59,999);
+  } else if (range === 'ayer') {
+    from = new Date(now); from.setDate(from.getDate()-1); from.setHours(0,0,0,0);
+    to = new Date(now); to.setDate(to.getDate()-1); to.setHours(23,59,59,999);
+  } else if (range === 'semana') {
+    from = new Date(now); from.setDate(from.getDate()-7); from.setHours(0,0,0,0);
+    to = new Date(now);
+  }
+  
+  document.getElementById('dateFrom').value = toLocalInput(from);
+  document.getElementById('dateTo').value = toLocalInput(to);
+  consultar();
+};
+
+function toLocalInput(d) {
+  const yyyy = d.getFullYear();
+  const mm = String(d.getMonth() + 1).padStart(2, '0');
+  const dd = String(d.getDate()).padStart(2, '0');
+  const hh = String(d.getHours()).padStart(2, '0');
+  const mi = String(d.getMinutes()).padStart(2, '0');
+  return `${yyyy}-${mm}-${dd}T${hh}:${mi}`;
+}
+
+// =====================================
+// TAB 1: CONSULTA POR RANGO DE FECHAS
+// =====================================
+window.consultar = async function() {
+  document.getElementById('results').innerHTML = '';
+  document.getElementById('debug').style.display = 'none';
+  setStatus('Cargando datos de jugadores...', 'loading');
+  
+  if (Object.keys(PLAYERS).length === 0) {
+    await loadPlayers();
+  }
+  
+  const fromStr = document.getElementById('dateFrom').value;
+  const toStr = document.getElementById('dateTo').value;
+  
+  if (!fromStr) {
+    setStatus('⚠️ Seleccioná una fecha "Desde"', 'error');
+    return;
+  }
+  
+  const fromDate = new Date(fromStr);
+  const toDate = toStr ? new Date(toStr) : new Date();
+  
+  setStatus('🔍 Descargando cartas desde Firebase...', 'loading');
+  
+  try {
+    const marksRef = collection(db, 'marks');
+    const snapshot = await getDocs(marksRef);
+    
+    const allCards = [];
+    snapshot.forEach(doc => {
+      const data = doc.data();
+      // Filtrar por marked_at (fecha real de marcado), NO updated_at
+      // updated_at cambia con cualquier edición (repes, notas, re-sync) y mostraría todo
+      let ts = parseTs(data.marked_at) || parseTs(data.updated_at);
+      allCards.push({ id: doc.id, ...data, ts });
+    });
+    
+    const filtered = allCards.filter(c => {
+      if (!c.ts) return false;
+      return c.ts >= fromDate && c.ts <= toDate;
+    });
+    
+    // Detectar clusters de sync masivo: grupos de >20 cartas en el mismo minuto
+    const hideBulk = document.getElementById('hideBulkSync')?.checked;
+    let bulkInfo = '';
+    let finalCards = filtered;
+    
+    if (hideBulk && filtered.length > 0) {
+      const byMinute = {};
+      filtered.forEach(c => {
+        // clave = YYYY-MM-DDTHH:MM (resolución de minuto)
+        const key = c.ts.toISOString().slice(0, 16);
+        if (!byMinute[key]) byMinute[key] = [];
+        byMinute[key].push(c);
+      });
+      
+      const bulkMinutes = Object.entries(byMinute).filter(([k, v]) => v.length > 20);
+      const bulkIds = new Set();
+      const bulkSummary = [];
+      
+      bulkMinutes.forEach(([minute, cards]) => {
+        cards.forEach(c => bulkIds.add(c.id));
+        const sample = new Date(minute + ':00Z').toLocaleString('es-CR', {
+          day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit'
+        });
+        bulkSummary.push(`${cards.length} cartas el ${sample}`);
+      });
+      
+      if (bulkIds.size > 0) {
+        finalCards = filtered.filter(c => !bulkIds.has(c.id));
+        bulkInfo = ` · 📦 ${bulkIds.size} ocultas (sync masivo: ${bulkSummary.join(', ')})`;
+      }
+    }
+    
+    finalCards.sort((a, b) => b.ts - a.ts);
+    
+    setStatus(`✅ Total en base: ${allCards.length} cartas · En el rango: ${finalCards.length}${bulkInfo}`, 'success');
+    
+    if (finalCards.length === 0 && allCards.length > 0) {
+      const samples = allCards.slice(0, 5).map(c => `${c.id}: ${c.ts ? c.ts.toLocaleString('es-CR') : '(sin fecha)'}`).join('\n');
+      setDebug('No hay cartas en ese rango' + (bulkInfo ? ' (después de filtrar sync masivo)' : '') + '. Ejemplos de cartas en la base:\n\n' + samples);
+      return;
+    }
+    
+    if (finalCards.length === 0) {
+      setStatus('🔭 No hay cartas marcadas en ese rango' + bulkInfo, 'success');
+      return;
+    }
+    
+    renderResults(finalCards);
+    
+  } catch (e) {
+    console.error(e);
+    setStatus('❌ Error: ' + e.message, 'error');
+  }
+};
+
+function parseTs(val) {
+  if (!val) return null;
+  if (typeof val === 'string') return new Date(val);
+  if (val.toDate) return val.toDate();
+  if (val.seconds) return new Date(val.seconds * 1000);
+  return null;
+}
+
+function renderResults(cards) {
+  const container = document.getElementById('results');
+  
+  const total = cards.length;
+  const conRepes = cards.filter(c => c.repes && c.repes > 0).length;
+  const equipos = new Set(cards.map(c => c.id.match(/^[A-Z]+/)?.[0]).filter(Boolean)).size;
+  
+  let html = `
+    <div class="stats-summary">
+      <div class="stat-card">
+        <div class="stat-value">${total}</div>
+        <div class="stat-label">Cartas</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value">${equipos}</div>
+        <div class="stat-label">Equipos</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value">${conRepes}</div>
+        <div class="stat-label">Con repes</div>
+      </div>
+    </div>
+  `;
+  
+  const byTeam = {};
+  cards.forEach(c => {
+    const team = c.id.match(/^[A-Z]+/)?.[0] || 'OTROS';
+    if (!byTeam[team]) byTeam[team] = [];
+    byTeam[team].push(c);
+  });
+  
+  const teamCodes = Object.keys(byTeam).sort();
+  
+  for (const team of teamCodes) {
+    const teamCards = byTeam[team];
+    teamCards.sort((a, b) => {
+      const na = parseInt(a.id.replace(/[A-Z]/g, '')) || 0;
+      const nb = parseInt(b.id.replace(/[A-Z]/g, '')) || 0;
+      return na - nb;
+    });
+    
+    html += `<div class="group-header">${team} · ${teamCards.length} cartas</div>`;
+    html += '<div class="card-list">';
+    
+    for (const card of teamCards) {
+      const playerName = getPlayerName(card.id);
+      const time = card.ts ? card.ts.toLocaleString('es-CR', { 
+        day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' 
+      }) : '';
+      const isRepe = card.repes && card.repes > 0;
+      
+      html += `
+        <div class="card-item ${isRepe ? 'repe' : 'new'}" onclick="searchCardFromList('${card.id}')" style="cursor:pointer;">
+          <div class="card-info">
+            <div class="card-id">${card.id}</div>
+            <div class="card-name">${playerName}</div>
+          </div>
+          <div class="card-time">${time}</div>
+          <span class="card-badge ${isRepe ? 'badge-repe' : 'badge-new'}">
+            ${isRepe ? `⭐ ${card.repes}` : '🟢'}
+          </span>
+        </div>
+      `;
+    }
+    
+    html += '</div>';
+  }
+  
+  container.innerHTML = html;
+}
+
+// Atajo: tocar una carta en el listado de rango → ver su historial
+window.searchCardFromList = function(cardId) {
+  switchTab('card');
+  selectCard(cardId);
+};
+
+// =====================================
+// TAB 2: BÚSQUEDA POR CARTA + HISTORIAL
+// =====================================
+const cardSearchEl = document.getElementById('cardSearch');
+const acList = document.getElementById('autocompleteList');
+let acHighlight = -1;
+
+cardSearchEl.addEventListener('input', () => {
+  const q = cardSearchEl.value.trim().toUpperCase();
+  if (!q) {
+    acList.classList.remove('open');
+    acList.innerHTML = '';
+    return;
+  }
+  // Asegurar CARDS cargado
+  if (ALL_CARDS.length === 0) {
+    loadPlayers().then(() => renderAutocomplete(q));
+  } else {
+    renderAutocomplete(q);
+  }
+});
+
+cardSearchEl.addEventListener('keydown', (e) => {
+  const items = acList.querySelectorAll('.autocomplete-item');
+  if (e.key === 'ArrowDown') {
+    e.preventDefault();
+    acHighlight = Math.min(items.length - 1, acHighlight + 1);
+    updateHighlight();
+  } else if (e.key === 'ArrowUp') {
+    e.preventDefault();
+    acHighlight = Math.max(0, acHighlight - 1);
+    updateHighlight();
+  } else if (e.key === 'Enter') {
+    e.preventDefault();
+    if (items[acHighlight]) items[acHighlight].click();
+    else if (items[0]) items[0].click();
+  } else if (e.key === 'Escape') {
+    acList.classList.remove('open');
+  }
+});
+
+document.addEventListener('click', (e) => {
+  if (!e.target.closest('.autocomplete-wrapper')) {
+    acList.classList.remove('open');
+  }
+});
+
+function updateHighlight() {
+  acList.querySelectorAll('.autocomplete-item').forEach((it, i) => {
+    it.classList.toggle('highlighted', i === acHighlight);
+  });
+  const hl = acList.querySelector('.autocomplete-item.highlighted');
+  if (hl) hl.scrollIntoView({ block: 'nearest' });
+}
+
+function renderAutocomplete(q) {
+  acHighlight = -1;
+  // Construir lista de candidatos desde ALL_CARDS + PLAYERS
+  let candidates = [];
+
+  if (ALL_CARDS.length > 0) {
+    candidates = ALL_CARDS.map(c => ({
+      id: c.id,
+      code: c.code || (c.id.match(/^[A-Z]+/)?.[0] || ''),
+      num: c.num || (c.id.match(/\d+$/)?.[0] || ''),
+      country: c.country || TEAM_NAMES[c.code] || '',
+      name: getPlayerName(c.id)
+    }));
+  } else {
+    // Fallback: armar desde PLAYERS si CARDS no se pudo parsear
+    Object.keys(PLAYERS).forEach(code => {
+      Object.keys(PLAYERS[code]).forEach(num => {
+        candidates.push({
+          id: code + num,
+          code: code,
+          num: num,
+          country: TEAM_NAMES[code] || code,
+          name: PLAYERS[code][num]
+        });
+      });
+    });
+  }
+
+  // Filtrar por query (id, código, número o nombre)
+  const qUpper = q.toUpperCase();
+  const matches = candidates.filter(c => {
+    if (c.id.toUpperCase().includes(qUpper)) return true;
+    if (c.name && c.name.toUpperCase().includes(qUpper)) return true;
+    if (c.country && c.country.toUpperCase().includes(qUpper)) return true;
+    return false;
+  }).slice(0, 30);  // limite
+
+  if (matches.length === 0) {
+    acList.innerHTML = '<div class="autocomplete-item" style="color:#888;cursor:default;">Sin resultados</div>';
+    acList.classList.add('open');
+    return;
+  }
+
+  acList.innerHTML = matches.map(m => `
+    <div class="autocomplete-item" onclick="selectCard('${m.id}')">
+      <div class="ac-thumb">
+        <img src="${CROMOS_BASE_URL}${m.id}.jpg" onerror="this.style.display='none'; this.parentElement.textContent='${m.code}${m.num}';" />
+      </div>
+      <div class="ac-info">
+        <div class="ac-name">${m.name}</div>
+        <div class="ac-team">${m.country} <span class="ac-code">${m.id}</span></div>
+      </div>
+    </div>
+  `).join('');
+  acList.classList.add('open');
+}
+
+window.selectCard = async function(cardId) {
+  cardSearchEl.value = cardId;
+  acList.classList.remove('open');
+  document.getElementById('cardHistory').innerHTML = '';
+  document.getElementById('cardHistoryStatus').innerHTML = '';
+
+  // Header con la info de la carta
+  const playerName = getPlayerName(cardId);
+  const country = getCountryName(cardId);
+  document.getElementById('selectedCardHeader').innerHTML = `
+    <div class="selected-card-header">
+      <div class="ac-thumb">
+        <img src="${CROMOS_BASE_URL}${cardId}.jpg" onerror="this.style.display='none';" />
+      </div>
+      <div class="info">
+        <div class="name">${playerName}</div>
+        <div class="meta">${country} · ${cardId}</div>
+      </div>
+      <button class="clear-btn" onclick="clearSelectedCard()">×</button>
+    </div>
+  `;
+
+  document.getElementById('cardHistoryStatus').innerHTML = '<div class="status loading">🔍 Buscando historial de la carta...</div>';
+
+  try {
+    const docRef = doc(db, 'marks', cardId);
+    const snap = await getDoc(docRef);
+
+    if (!snap.exists()) {
+      document.getElementById('cardHistoryStatus').innerHTML = '';
+      document.getElementById('cardHistory').innerHTML = `
+        <div class="empty-state">
+          <div class="icon">🔭</div>
+          <div>Esta carta nunca fue marcada</div>
+          <div style="margin-top:8px;font-size:11px;">Marcala en el álbum para verla aparecer acá</div>
+        </div>
+      `;
+      return;
+    }
+
+    const data = snap.data();
+    document.getElementById('cardHistoryStatus').innerHTML = '';
+    renderCardHistory(cardId, data);
+  } catch(e) {
+    console.error(e);
+    document.getElementById('cardHistoryStatus').innerHTML = `<div class="status error">❌ Error: ${e.message}</div>`;
+  }
+};
+
+window.clearSelectedCard = function() {
+  document.getElementById('selectedCardHeader').innerHTML = '';
+  document.getElementById('cardHistory').innerHTML = '';
+  document.getElementById('cardHistoryStatus').innerHTML = '';
+  cardSearchEl.value = '';
+  cardSearchEl.focus();
+};
+
+function fmtDate(d) {
+  if (!d) return '(sin fecha)';
+  return d.toLocaleString('es-CR', {
+    day: '2-digit', month: 'short', year: 'numeric',
+    hour: '2-digit', minute: '2-digit'
+  });
+}
+
+function renderCardHistory(cardId, data) {
+  // Construir lista de eventos desde los timestamps disponibles
+  const events = [];
+
+  const markedAt = parseTs(data.marked_at);
+  const unmarkedAt = parseTs(data.unmarked_at);
+  const repesUpdatedAt = parseTs(data.repes_updated_at);
+  const notesUpdatedAt = parseTs(data.notes_updated_at);
+  const updatedAt = parseTs(data.updated_at);
+
+  if (markedAt) {
+    events.push({
+      type: 'mark',
+      ts: markedAt,
+      icon: '✅',
+      titleClass: 'green',
+      title: 'Marcada por primera vez',
+      detail: 'La pegaste en el álbum'
+    });
+  }
+
+  if (unmarkedAt) {
+    events.push({
+      type: 'unmark',
+      ts: unmarkedAt,
+      icon: '🔄',
+      titleClass: 'red',
+      title: 'Desmarcada',
+      detail: 'La quitaste del álbum (repes/notas preservadas)'
+    });
+  }
+
+  if (repesUpdatedAt && data.repes !== undefined) {
+    events.push({
+      type: 'repe',
+      ts: repesUpdatedAt,
+      icon: '⭐',
+      titleClass: 'gold',
+      title: `Cantidad de repes: ${data.repes}`,
+      detail: data.repes > 0 ? `Tenés ${data.repes} repetida${data.repes > 1 ? 's' : ''} de esta carta` : 'Sin repetidas'
+    });
+  }
+
+  if (notesUpdatedAt && data.notes) {
+    events.push({
+      type: 'note',
+      ts: notesUpdatedAt,
+      icon: '📝',
+      titleClass: 'blue',
+      title: 'Nota actualizada',
+      detail: data.notes
+    });
+  }
+
+  // Si no hay eventos específicos pero sí updated_at, mostrar al menos eso
+  if (events.length === 0 && updatedAt) {
+    events.push({
+      type: 'mark',
+      ts: updatedAt,
+      icon: data.owned ? '✅' : '🔄',
+      titleClass: data.owned ? 'green' : 'red',
+      title: data.owned ? 'Marcada (sin timestamp específico)' : 'Desmarcada (sin timestamp específico)',
+      detail: 'Esta carta fue modificada antes del 26-may-2026 (cuando empezamos a registrar timestamps)'
+    });
+  }
+
+  // Estado actual
+  const stateHtml = `
+    <div class="stats-summary">
+      <div class="stat-card">
+        <div class="stat-value" style="color:${data.owned ? '#00d97e' : '#ef4444'};">${data.owned ? '✅' : '❌'}</div>
+        <div class="stat-label">${data.owned ? 'En álbum' : 'Falta'}</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value">${data.repes || 0}</div>
+        <div class="stat-label">Repes</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value" style="font-size:18px;">${data.notes ? '📝' : '—'}</div>
+        <div class="stat-label">Nota</div>
+      </div>
+    </div>
+  `;
+
+  // Ordenar eventos por fecha descendente
+  events.sort((a, b) => b.ts - a.ts);
+
+  let timelineHtml = '<div class="group-header">📜 HISTORIAL</div>';
+  if (events.length === 0) {
+    timelineHtml += '<div class="empty-state"><div class="icon">📅</div><div>Sin historial registrado</div></div>';
+  } else {
+    timelineHtml += '<div class="timeline">';
+    events.forEach(e => {
+      timelineHtml += `
+        <div class="timeline-event event-${e.type}">
+          <div class="te-header">
+            <span class="te-icon">${e.icon}</span>
+            <span class="te-title ${e.titleClass}">${e.title}</span>
+            <span class="te-date">${fmtDate(e.ts)}</span>
+          </div>
+          ${e.detail ? `<div class="te-detail">${e.detail}</div>` : ''}
+        </div>
+      `;
+    });
+    timelineHtml += '</div>';
+  }
+
+  document.getElementById('cardHistory').innerHTML = stateHtml + timelineHtml;
+}
+
+// =====================================
+// INIT
+// =====================================
+window.addEventListener('DOMContentLoaded', () => {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  document.getElementById('dateFrom').value = toLocalInput(today);
+  
+  const now = new Date();
+  document.getElementById('dateTo').value = toLocalInput(now);
+  
+  loadPlayers();
+});
+</script>
+</body>
+</html>
