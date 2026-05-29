@@ -1568,6 +1568,333 @@ body[data-offline="true"] .card.editable:active {
 body[data-view="album"] .view-section[data-view="album"] { display: block; }
 body[data-view="repes"] .view-section[data-view="repes"] { display: block; }
 body[data-view="stats"] .view-section[data-view="stats"] { display: block; }
+body[data-view="historial"] .view-section[data-view="historial"] { display: block; }
+
+/* =================== HISTORIAL =================== */
+.hist-tabs {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+  background: var(--glass-bg);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid var(--glass-border);
+  border-radius: 14px;
+  padding: 6px;
+}
+.hist-tab {
+  flex: 1;
+  padding: 11px 12px;
+  background: transparent;
+  border: none;
+  border-radius: 10px;
+  color: var(--text-soft);
+  font-family: 'Manrope', sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.hist-tab.active {
+  background: linear-gradient(135deg, var(--gold) 0%, var(--orange) 100%);
+  color: #000;
+  box-shadow: var(--shadow-gold);
+}
+.hist-panel { display: none; }
+.hist-panel.active { display: block; animation: fadeIn 0.3s; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+
+.hist-quick {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin-bottom: 14px;
+}
+.hist-quick-btn {
+  background: var(--glass-bg);
+  backdrop-filter: blur(20px);
+  border: 1px solid var(--glass-border);
+  color: var(--text);
+  padding: 12px 8px;
+  border-radius: 12px;
+  font-family: 'Manrope', sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.hist-quick-btn:hover {
+  background: var(--surface-strong);
+  border-color: var(--gold);
+}
+
+.hist-date-range {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+.hist-date-field { display: flex; flex-direction: column; gap: 4px; }
+.hist-date-field label {
+  font-size: 11px;
+  color: var(--text-soft);
+  font-weight: 600;
+  letter-spacing: 0.5px;
+}
+.hist-date-input {
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  border-radius: 10px;
+  padding: 10px 12px;
+  color: var(--text);
+  font-family: 'Manrope', sans-serif;
+  font-size: 13px;
+  width: 100%;
+  color-scheme: dark;
+}
+[data-theme="light"] .hist-date-input { color-scheme: light; }
+
+.hist-bulk-toggle {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  border-radius: 10px;
+  padding: 10px 12px;
+  margin-bottom: 12px;
+  color: var(--text-soft);
+  font-size: 12px;
+  cursor: pointer;
+}
+.hist-bulk-toggle input { width: 18px; height: 18px; cursor: pointer; accent-color: var(--gold); }
+.hist-bulk-toggle label { cursor: pointer; flex: 1; }
+
+.hist-consultar {
+  width: 100%;
+  padding: 14px;
+  background: linear-gradient(135deg, var(--green) 0%, var(--green-dark) 100%);
+  color: #fff;
+  border: none;
+  border-radius: 12px;
+  font-family: 'Manrope', sans-serif;
+  font-size: 14px;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+  cursor: pointer;
+  box-shadow: 0 4px 14px rgba(0, 168, 89, 0.25);
+  transition: all 0.2s;
+}
+.hist-consultar:hover { transform: translateY(-1px); box-shadow: 0 6px 18px rgba(0, 168, 89, 0.35); }
+.hist-consultar:active { transform: translateY(0); }
+
+.hist-status {
+  margin-top: 14px;
+  padding: 12px 14px;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 500;
+}
+.hist-status.loading { background: var(--glass-bg); border: 1px solid var(--glass-border); color: var(--text-soft); }
+.hist-status.success { background: rgba(0, 168, 89, 0.12); border: 1px solid rgba(0, 168, 89, 0.3); color: var(--green); }
+.hist-status.error { background: rgba(200, 16, 46, 0.12); border: 1px solid rgba(200, 16, 46, 0.3); color: var(--red); }
+
+.hist-summary {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin: 14px 0;
+}
+.hist-stat {
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  border-radius: 12px;
+  padding: 14px 8px;
+  text-align: center;
+}
+.hist-stat .big {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 28px;
+  font-weight: 900;
+  color: var(--gold);
+  line-height: 1;
+}
+.hist-stat .label {
+  font-size: 9px;
+  color: var(--text-soft);
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  margin-top: 4px;
+  font-weight: 600;
+}
+
+.hist-group { margin-top: 20px; }
+.hist-group-header {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  color: var(--gold);
+  margin-bottom: 8px;
+  padding-left: 4px;
+}
+.hist-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  border-left: 3px solid var(--green);
+  border-radius: 10px;
+  padding: 12px 14px;
+  margin-bottom: 6px;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.hist-row:hover { background: var(--surface-strong); }
+.hist-row .hist-row-main { flex: 1; min-width: 0; }
+.hist-row .hist-code {
+  color: var(--gold);
+  font-weight: 800;
+  font-size: 14px;
+  letter-spacing: 0.5px;
+}
+.hist-row .hist-name {
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 600;
+  margin-top: 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.hist-row .hist-time {
+  color: var(--text-soft);
+  font-size: 11px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+.hist-row .hist-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--green);
+  box-shadow: 0 0 8px rgba(0, 168, 89, 0.5);
+  flex-shrink: 0;
+}
+.hist-row.unmarked { border-left-color: var(--red); }
+.hist-row.unmarked .hist-dot { background: var(--red); box-shadow: 0 0 8px rgba(200, 16, 46, 0.5); }
+
+.hist-debug {
+  margin-top: 12px;
+  padding: 10px;
+  background: rgba(0,0,0,0.2);
+  border: 1px solid var(--glass-border);
+  border-radius: 8px;
+  font-family: 'Courier New', monospace;
+  font-size: 11px;
+  color: var(--text-soft);
+  white-space: pre-wrap;
+  display: none;
+}
+.hist-debug.show { display: block; }
+
+/* Por carta */
+.hist-search-wrap { position: relative; margin-bottom: 14px; }
+.hist-search-input {
+  width: 100%;
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  border-radius: 12px;
+  padding: 14px 16px;
+  color: var(--text);
+  font-family: 'Manrope', sans-serif;
+  font-size: 14px;
+}
+.hist-search-input:focus { outline: none; border-color: var(--gold); }
+.hist-autocomplete {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  background: var(--glass-strong);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid var(--glass-border);
+  border-radius: 12px;
+  max-height: 260px;
+  overflow-y: auto;
+  z-index: 100;
+  display: none;
+}
+.hist-autocomplete.open { display: block; }
+.hist-ac-item {
+  padding: 10px 14px;
+  cursor: pointer;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.hist-ac-item:last-child { border-bottom: none; }
+.hist-ac-item:hover, .hist-ac-item.highlight { background: var(--surface-strong); }
+.hist-ac-item .hist-ac-code { color: var(--gold); font-weight: 800; font-size: 13px; min-width: 56px; }
+.hist-ac-item .hist-ac-name { color: var(--text); font-size: 13px; }
+.hist-ac-item .hist-ac-country { color: var(--text-soft); font-size: 11px; margin-left: auto; }
+
+.hist-selected-card {
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  border-left: 3px solid var(--gold);
+  border-radius: 12px;
+  padding: 14px;
+  margin-bottom: 14px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.hist-selected-card .hist-sel-info { flex: 1; min-width: 0; }
+.hist-selected-card .hist-sel-code { color: var(--gold); font-weight: 800; font-size: 16px; }
+.hist-selected-card .hist-sel-name { color: var(--text); font-weight: 600; margin-top: 2px; }
+.hist-selected-card .hist-sel-clear {
+  background: none;
+  border: 1px solid var(--glass-border);
+  color: var(--text-soft);
+  padding: 6px 10px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 12px;
+}
+.hist-selected-card .hist-sel-clear:hover { color: var(--red); border-color: var(--red); }
+
+.hist-event {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  border-radius: 10px;
+  padding: 12px 14px;
+  margin-bottom: 6px;
+}
+.hist-event .hist-ev-icon { font-size: 18px; flex-shrink: 0; }
+.hist-event .hist-ev-text { flex: 1; }
+.hist-event .hist-ev-action { font-weight: 700; font-size: 13px; }
+.hist-event .hist-ev-action.marked { color: var(--green); }
+.hist-event .hist-ev-action.unmarked { color: var(--red); }
+.hist-event .hist-ev-date { color: var(--text-soft); font-size: 11px; margin-top: 2px; }
+
+/* Responsivo móvil */
+@media (max-width: 600px) {
+  .hist-quick { grid-template-columns: 1fr 1fr 1fr; gap: 6px; }
+  .hist-quick-btn { padding: 10px 4px; font-size: 11px; letter-spacing: 0; }
+  .hist-date-range { grid-template-columns: 1fr; }
+  .hist-summary { grid-template-columns: repeat(3, 1fr); gap: 6px; }
+  .hist-stat { padding: 10px 4px; }
+  .hist-stat .big { font-size: 22px; }
+  .hist-row { padding: 10px 12px; gap: 8px; }
+  .hist-row .hist-time { font-size: 10px; }
+}
 
 /* REPES - Lista */
 .repes-summary {
@@ -3349,6 +3676,7 @@ body[data-view="stats"] .view-section[data-view="stats"] { display: block; }
     <button class="view-tab active" data-tab="album" onclick="switchView('album')">ÁLBUM</button>
     <button class="view-tab" data-tab="repes" onclick="switchView('repes')">REPES</button>
     <button class="view-tab" data-tab="stats" onclick="switchView('stats')">📊 STATS</button>
+    <button class="view-tab" data-tab="historial" onclick="switchView('historial')">📅 HISTORIAL</button>
   </div>
   
   <div class="view-section" data-view="album">
@@ -3398,6 +3726,56 @@ body[data-view="stats"] .view-section[data-view="stats"] { display: block; }
   
   <div class="view-section" data-view="stats" id="statsView">
     <!-- se llena dinámicamente -->
+  </div>
+
+  <!-- ========================= HISTORIAL ========================= -->
+  <div class="view-section" data-view="historial" id="historialView">
+    <div class="hist-tabs">
+      <button class="hist-tab active" data-htab="fechas" onclick="switchHistTab('fechas')">📆 Por fechas</button>
+      <button class="hist-tab" data-htab="carta" onclick="switchHistTab('carta')">🎴 Por carta</button>
+    </div>
+
+    <!-- POR FECHAS -->
+    <div class="hist-panel active" data-htab="fechas">
+      <div class="hist-quick">
+        <button class="hist-quick-btn" onclick="histQuickRange('hoy')">📅 Hoy</button>
+        <button class="hist-quick-btn" onclick="histQuickRange('ayer')">📅 Ayer</button>
+        <button class="hist-quick-btn" onclick="histQuickRange('7dias')">📅 7 días</button>
+      </div>
+
+      <div class="hist-date-range">
+        <div class="hist-date-field">
+          <label>Desde:</label>
+          <input type="datetime-local" id="histDateFrom" class="hist-date-input">
+        </div>
+        <div class="hist-date-field">
+          <label>Hasta:</label>
+          <input type="datetime-local" id="histDateTo" class="hist-date-input">
+        </div>
+      </div>
+
+      <div class="hist-bulk-toggle">
+        <input type="checkbox" id="histHideBulk" checked>
+        <label for="histHideBulk">🚫 Ocultar sync masivo (+20 cartas/min)</label>
+      </div>
+
+      <button class="hist-consultar" onclick="histConsultar()">🔍 Consultar</button>
+
+      <div id="histStatus"></div>
+      <div id="histResults"></div>
+      <div id="histDebug" class="hist-debug"></div>
+    </div>
+
+    <!-- POR CARTA -->
+    <div class="hist-panel" data-htab="carta">
+      <div class="hist-search-wrap">
+        <input type="text" id="histCardSearch" class="hist-search-input" placeholder="Buscá por código (ej: MAR4, FWC12) o jugador" autocomplete="off">
+        <div id="histCardAutocomplete" class="hist-autocomplete"></div>
+      </div>
+      <div id="histCardSelected"></div>
+      <div id="histCardHistoryStatus"></div>
+      <div id="histCardHistory"></div>
+    </div>
   </div>
   
   <div class="card-modal" id="cardModal" onclick="if(event.target.id==='cardModal') closeCardModal()">
@@ -4620,6 +4998,7 @@ function switchView(view) {
   });
   if (view === 'repes') renderRepesView();
   if (view === 'stats') renderStatsView();
+  if (view === 'historial') initHistorialView();
 }
 
 function renderRepesView() {
@@ -7177,6 +7556,334 @@ window.addEventListener('offline', () => {
 });
 
 setTimeout(startSyncSystem, 600);
+
+// ====================================================================
+// ===================== HISTORIAL (PORTADO) ==========================
+// ====================================================================
+let _histInited = false;
+
+function initHistorialView() {
+  if (_histInited) return;
+  _histInited = true;
+  // Set default range = hoy
+  histQuickRange('hoy');
+  // Setup autocomplete on card search
+  const inp = document.getElementById('histCardSearch');
+  if (inp) {
+    inp.addEventListener('input', () => histRenderAutocomplete(inp.value));
+    inp.addEventListener('focus', () => histRenderAutocomplete(inp.value));
+    inp.addEventListener('blur', () => setTimeout(() => {
+      const ac = document.getElementById('histCardAutocomplete');
+      if (ac) ac.classList.remove('open');
+    }, 200));
+  }
+}
+
+window.switchHistTab = function(tab) {
+  document.querySelectorAll('.hist-tab').forEach(t => t.classList.toggle('active', t.dataset.htab === tab));
+  document.querySelectorAll('.hist-panel').forEach(p => p.classList.toggle('active', p.dataset.htab === tab));
+};
+
+function histSetStatus(msg, type='loading') {
+  const el = document.getElementById('histStatus');
+  if (!el) return;
+  el.innerHTML = `<div class="hist-status ${type}">${msg}</div>`;
+}
+function histSetDebug(msg) {
+  const el = document.getElementById('histDebug');
+  if (!el) return;
+  if (!msg) { el.classList.remove('show'); return; }
+  el.textContent = msg;
+  el.classList.add('show');
+}
+
+function histToLocalInput(d) {
+  const pad = n => String(n).padStart(2, '0');
+  return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}
+
+window.histQuickRange = function(range) {
+  const now = new Date();
+  let from, to;
+  if (range === 'hoy') {
+    from = new Date(now); from.setHours(0,0,0,0);
+    to = new Date(now); to.setHours(23,59,59,999);
+  } else if (range === 'ayer') {
+    from = new Date(now); from.setDate(from.getDate()-1); from.setHours(0,0,0,0);
+    to = new Date(now); to.setDate(to.getDate()-1); to.setHours(23,59,59,999);
+  } else if (range === '7dias') {
+    from = new Date(now); from.setDate(from.getDate()-7); from.setHours(0,0,0,0);
+    to = new Date(now); to.setHours(23,59,59,999);
+  }
+  document.getElementById('histDateFrom').value = histToLocalInput(from);
+  document.getElementById('histDateTo').value = histToLocalInput(to);
+};
+
+function histParseTs(val) {
+  if (!val) return null;
+  if (typeof val === 'string') return new Date(val);
+  if (val.toDate) return val.toDate();
+  if (val.seconds) return new Date(val.seconds * 1000);
+  return null;
+}
+
+function histGetCardName(cardId) {
+  const c = CARDS.find(x => x.id === cardId);
+  if (!c) return cardId;
+  const player = (typeof PLAYERS !== 'undefined' && PLAYERS[cardId]) || '';
+  return player ? `${cardId} · ${player}` : cardId;
+}
+
+function histGetCountry(cardId) {
+  const c = CARDS.find(x => x.id === cardId);
+  return c ? c.country : '';
+}
+
+window.histConsultar = async function() {
+  if (!firebaseReady || !window._fb) {
+    histSetStatus('⚠️ Firebase no está conectado todavía. Reintentá en unos segundos.', 'error');
+    return;
+  }
+  const fromVal = document.getElementById('histDateFrom').value;
+  const toVal = document.getElementById('histDateTo').value;
+  if (!fromVal || !toVal) {
+    histSetStatus('⚠️ Seleccioná ambas fechas', 'error');
+    return;
+  }
+  const fromDate = new Date(fromVal);
+  const toDate = new Date(toVal);
+
+  histSetStatus('🔍 Descargando cartas desde Firebase...', 'loading');
+  document.getElementById('histResults').innerHTML = '';
+  histSetDebug('');
+
+  try {
+    const { collection, getDocs } = window._fb;
+    const snapshot = await getDocs(collection(firebaseDb, 'marks'));
+    const allCards = [];
+    snapshot.forEach(doc => {
+      const data = doc.data();
+      // Filtrar por marked_at (fecha real); fallback a updated_at sólo si no existe
+      let ts = histParseTs(data.marked_at) || histParseTs(data.updated_at);
+      allCards.push({ id: doc.id, ...data, ts });
+    });
+
+    const filtered = allCards.filter(c => c.ts && c.ts >= fromDate && c.ts <= toDate);
+
+    // Detectar clusters de sync masivo (+20 cartas/min)
+    const hideBulk = document.getElementById('histHideBulk')?.checked;
+    let bulkInfo = '';
+    let finalCards = filtered;
+    if (hideBulk && filtered.length > 0) {
+      const byMinute = {};
+      filtered.forEach(c => {
+        const key = c.ts.toISOString().slice(0, 16);
+        if (!byMinute[key]) byMinute[key] = [];
+        byMinute[key].push(c);
+      });
+      const bulkIds = new Set();
+      const bulkSummary = [];
+      Object.entries(byMinute).filter(([k, v]) => v.length > 20).forEach(([minute, cards]) => {
+        cards.forEach(c => bulkIds.add(c.id));
+        const sample = new Date(minute + ':00Z').toLocaleString('es-CR', {
+          day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit'
+        });
+        bulkSummary.push(`${cards.length} el ${sample}`);
+      });
+      if (bulkIds.size > 0) {
+        finalCards = filtered.filter(c => !bulkIds.has(c.id));
+        bulkInfo = ` · 📦 ${bulkIds.size} ocultas (${bulkSummary.join(', ')})`;
+      }
+    }
+    finalCards.sort((a, b) => b.ts - a.ts);
+
+    histSetStatus(`✅ Total en base: ${allCards.length} · En el rango: ${finalCards.length}${bulkInfo}`, 'success');
+
+    if (finalCards.length === 0) {
+      if (allCards.length > 0) {
+        const samples = allCards.slice(0, 5).map(c => `${c.id}: ${c.ts ? c.ts.toLocaleString('es-CR') : '(sin fecha)'}`).join('\n');
+        histSetDebug('No hay cartas en ese rango. Ejemplos:\n\n' + samples);
+      }
+      document.getElementById('histResults').innerHTML = '<div class="hist-status loading">🔭 No hay resultados</div>';
+      return;
+    }
+    histRenderResults(finalCards);
+  } catch (err) {
+    console.error(err);
+    histSetStatus('❌ Error: ' + err.message, 'error');
+  }
+};
+
+function histRenderResults(cards) {
+  const container = document.getElementById('histResults');
+  // Agrupar por país (code)
+  const grouped = {};
+  cards.forEach(c => {
+    const card = CARDS.find(x => x.id === c.id);
+    const key = card ? card.code : '???';
+    if (!grouped[key]) grouped[key] = [];
+    grouped[key].push(c);
+  });
+  const groups = Object.keys(grouped).sort((a, b) => grouped[b].length - grouped[a].length);
+  const equiposCount = groups.length;
+  const totalCount = cards.length;
+  const conRepes = cards.filter(c => c.repes && c.repes > 0).length;
+
+  let html = `
+    <div class="hist-summary">
+      <div class="hist-stat"><div class="big">${totalCount}</div><div class="label">Cartas</div></div>
+      <div class="hist-stat"><div class="big">${equiposCount}</div><div class="label">Equipos</div></div>
+      <div class="hist-stat"><div class="big">${conRepes}</div><div class="label">Con repes</div></div>
+    </div>
+  `;
+
+  groups.forEach(code => {
+    const items = grouped[code];
+    html += `<div class="hist-group">
+      <div class="hist-group-header">${code} · ${items.length} carta${items.length !== 1 ? 's' : ''}</div>`;
+    items.forEach(c => {
+      const card = CARDS.find(x => x.id === c.id);
+      const name = (typeof PLAYERS !== 'undefined' && PLAYERS[c.id]) || (card ? card.country : c.id);
+      const time = c.ts.toLocaleString('es-CR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
+      const wasMarked = c.owned !== false;
+      html += `<div class="hist-row ${wasMarked ? '' : 'unmarked'}" onclick="histSelectCardFromList('${c.id}')">
+        <div class="hist-dot"></div>
+        <div class="hist-row-main">
+          <div class="hist-code">${c.id}</div>
+          <div class="hist-name">${name}</div>
+        </div>
+        <div class="hist-time">${time}</div>
+      </div>`;
+    });
+    html += `</div>`;
+  });
+
+  container.innerHTML = html;
+}
+
+// ============== POR CARTA ==============
+window.histSelectCardFromList = function(cardId) {
+  switchHistTab('carta');
+  histSelectCard(cardId);
+};
+
+function histRenderAutocomplete(q) {
+  const ac = document.getElementById('histCardAutocomplete');
+  if (!ac) return;
+  q = (q || '').trim().toUpperCase();
+  if (q.length < 1) { ac.classList.remove('open'); return; }
+
+  const matches = [];
+  for (const card of CARDS) {
+    const player = (typeof PLAYERS !== 'undefined' && PLAYERS[card.id]) || '';
+    if (card.id.toUpperCase().includes(q) || player.toUpperCase().includes(q) || card.country.toUpperCase().includes(q)) {
+      matches.push({ id: card.id, player, country: card.country });
+      if (matches.length >= 30) break;
+    }
+  }
+  if (matches.length === 0) { ac.classList.remove('open'); return; }
+
+  ac.innerHTML = matches.map(m => `
+    <div class="hist-ac-item" onclick="histSelectCard('${m.id}')">
+      <div class="hist-ac-code">${m.id}</div>
+      <div class="hist-ac-name">${m.player || '—'}</div>
+      <div class="hist-ac-country">${m.country}</div>
+    </div>
+  `).join('');
+  ac.classList.add('open');
+}
+
+window.histSelectCard = async function(cardId) {
+  document.getElementById('histCardAutocomplete').classList.remove('open');
+  document.getElementById('histCardSearch').value = '';
+
+  const card = CARDS.find(c => c.id === cardId);
+  const player = (typeof PLAYERS !== 'undefined' && PLAYERS[cardId]) || '';
+  const selEl = document.getElementById('histCardSelected');
+  selEl.innerHTML = `
+    <div class="hist-selected-card">
+      <div class="hist-sel-info">
+        <div class="hist-sel-code">${cardId}</div>
+        <div class="hist-sel-name">${player || (card ? card.country : '')}</div>
+      </div>
+      <button class="hist-sel-clear" onclick="histClearSelected()">✕</button>
+    </div>
+  `;
+
+  document.getElementById('histCardHistoryStatus').innerHTML = '<div class="hist-status loading">🔍 Buscando historial...</div>';
+  document.getElementById('histCardHistory').innerHTML = '';
+
+  if (!firebaseReady || !window._fb) {
+    document.getElementById('histCardHistoryStatus').innerHTML = '<div class="hist-status error">⚠️ Firebase no conectado</div>';
+    return;
+  }
+  try {
+    const { doc, getDoc } = window._fb;
+    const snap = await getDoc(doc(firebaseDb, 'marks', cardId));
+    document.getElementById('histCardHistoryStatus').innerHTML = '';
+    if (!snap.exists()) {
+      document.getElementById('histCardHistory').innerHTML = '<div class="hist-status loading">📭 Esta carta nunca se marcó</div>';
+      return;
+    }
+    const data = snap.data();
+    histRenderCardHistory(cardId, data);
+  } catch (err) {
+    document.getElementById('histCardHistoryStatus').innerHTML = `<div class="hist-status error">❌ ${err.message}</div>`;
+  }
+};
+
+window.histClearSelected = function() {
+  document.getElementById('histCardSelected').innerHTML = '';
+  document.getElementById('histCardHistory').innerHTML = '';
+  document.getElementById('histCardHistoryStatus').innerHTML = '';
+};
+
+function histFmtDate(d) {
+  if (!d) return '—';
+  return d.toLocaleString('es-CR', { day: '2-digit', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+}
+
+function histRenderCardHistory(cardId, data) {
+  const events = [];
+  const markedAt = histParseTs(data.marked_at);
+  const unmarkedAt = histParseTs(data.unmarked_at);
+  const updatedAt = histParseTs(data.updated_at);
+
+  if (markedAt) events.push({ ts: markedAt, type: 'marked', icon: '✅', label: 'Marcada como pegada' });
+  if (unmarkedAt) events.push({ ts: unmarkedAt, type: 'unmarked', icon: '❌', label: 'Desmarcada' });
+  if (updatedAt && (!markedAt || Math.abs(updatedAt - (markedAt || 0)) > 60000) && (!unmarkedAt || Math.abs(updatedAt - (unmarkedAt || 0)) > 60000)) {
+    events.push({ ts: updatedAt, type: 'updated', icon: '✏️', label: 'Actualizada (notas/repes)' });
+  }
+
+  events.sort((a, b) => b.ts - a.ts);
+
+  const repes = data.repes || 0;
+  const status = data.owned !== false ? '🟢 PEGADA' : '🔴 NO PEGADA';
+
+  let html = `
+    <div class="hist-summary">
+      <div class="hist-stat"><div class="big" style="font-size:18px;">${status}</div><div class="label">Estado</div></div>
+      <div class="hist-stat"><div class="big">${repes}</div><div class="label">Repes</div></div>
+      <div class="hist-stat"><div class="big">${events.length}</div><div class="label">Eventos</div></div>
+    </div>
+  `;
+  if (events.length === 0) {
+    html += '<div class="hist-status loading">No hay eventos registrados con timestamp</div>';
+  } else {
+    html += '<div class="hist-group"><div class="hist-group-header">CRONOLOGÍA</div>';
+    events.forEach(ev => {
+      html += `<div class="hist-event">
+        <div class="hist-ev-icon">${ev.icon}</div>
+        <div class="hist-ev-text">
+          <div class="hist-ev-action ${ev.type}">${ev.label}</div>
+          <div class="hist-ev-date">${histFmtDate(ev.ts)}</div>
+        </div>
+      </div>`;
+    });
+    html += '</div>';
+  }
+  document.getElementById('histCardHistory').innerHTML = html;
+}
 
 </script>
 
